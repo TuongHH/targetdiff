@@ -1,3 +1,4 @@
 *
 !.gitignore
+!README.md
 !affinity_info.pkl

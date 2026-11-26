@@ -85,10 +85,11 @@ Not changes in behaviour, but two things that are easy to mistake for bugs when 
 the preprocessing scripts yourself:
 
 * `split_pl_dataset.py` reports **train 99,990 / val 0 / test 100**, not 100,000 train.
-  Ten pairs listed in `split_by_name.pt` have an RMSD above the 1.0 Å cutoff in the
-  CrossDocked **v1.1** types file (e.g. 1.017, 1.176, 6.507 Å) and are dropped by
-  `clean_crossdocked.py`. That split file comes from AR / Pocket2Mol, which filtered
-  **v1.0** RMSDs. All 100 test pairs are present.
+  Ten pairs listed in `split_by_name.pt` do not survive into CrossDocked **v1.1**: eight
+  have a re-computed RMSD above the 1.0 Å cutoff, and two poses are absent from v1.1
+  altogether. That split file comes from AR / Pocket2Mol, which was built against
+  **v1.0**. All 100 test pairs are present. See [data/README.md](data/README.md) for the
+  per-pair breakdown.
 * The `.lmdb` file and the `_pose_split.pt` file **must be used as the pair that was
   built together**. `extract_pockets.py` collects results with `imap_unordered`, so the
   ordering of `index.pkl` — and hence LMDB keys and split indices — differs between runs.
