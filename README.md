@@ -54,6 +54,48 @@ mamba env create -f environment.yaml
 conda activate targetdiff  # note: one still needs to use `conda` to (de)activate environments
 ```
 
+## Changes compared to the original TargetDiff
+
+This fork tracks [guanjq/targetdiff](https://github.com/guanjq/targetdiff). The only code
+difference is a NumPy compatibility fix; model architecture, hyperparameters, data
+preprocessing logic and evaluation are untouched.
+
+### NumPy >= 1.24 compatibility
+
+The original code uses the deprecated dtype aliases `np.long`, `np.int` and `np.bool`,
+which were removed in NumPy 1.24 and raise `AttributeError` on import/parse. They are
+replaced by their exact equivalents (15 occurrences):
+
+| Original  | Replacement | Note                                 |
+|-----------|-------------|--------------------------------------|
+| `np.long` | `np.int64`  | `np.long` was an alias for `int64`   |
+| `np.int`  | `np.int64`  | alias for Python `int`, i.e. `int64` |
+| `np.bool` | `bool`      | alias for Python `bool`              |
+
+Affected files: `datasets/protein_ligand.py`, `utils/data.py`.
+
+These are pure aliases, so the generated dataset is bit-identical to one produced by the
+original code on an older NumPy. Verified with NumPy 1.24.4: regenerating the pocket and
+ligand files for `1h36_A_rec_1h36_r88_lig_tt_docked_0` reproduces the author-committed
+copies in `examples/` byte-for-byte (md5 `ac741384158b3ea5462cea4d95a2d8b9`).
+
+### Notes on regenerating the dataset
+
+Not changes in behaviour, but two things that are easy to mistake for bugs when running
+the preprocessing scripts yourself:
+
+* `split_pl_dataset.py` reports **train 99,990 / val 0 / test 100**, not 100,000 train.
+  Ten pairs listed in `split_by_name.pt` have an RMSD above the 1.0 Å cutoff in the
+  CrossDocked **v1.1** types file (e.g. 1.017, 1.176, 6.507 Å) and are dropped by
+  `clean_crossdocked.py`. That split file comes from AR / Pocket2Mol, which filtered
+  **v1.0** RMSDs. All 100 test pairs are present.
+* The `.lmdb` file and the `_pose_split.pt` file **must be used as the pair that was
+  built together**. `extract_pockets.py` collects results with `imap_unordered`, so the
+  ordering of `index.pkl` — and hence LMDB keys and split indices — differs between runs.
+  Mixing a locally built `.lmdb` with the split file downloaded from the Google Drive
+  folder (or vice versa) silently trains and evaluates on the wrong molecules without
+  raising an error. If you rebuild one, rebuild both.
+
 -----
 # Target-Aware Molecule Generation
 ## Data
