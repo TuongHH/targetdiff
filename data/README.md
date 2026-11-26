@@ -1,8 +1,5 @@
 # Notes on the generated data
 
-Contents of this directory are gitignored (see `.gitignore`); only this note and
-`affinity_info.pkl` are tracked.
-
 Expected result of running the three scripts in `scripts/data_preparation` on
 CrossDocked2020 **v1.1**:
 
